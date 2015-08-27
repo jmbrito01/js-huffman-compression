@@ -8,6 +8,6 @@
     "email": ""
   },
   "dependencies": {
-    "readline-sync": "^1.2.20"
+    "jetty": "^0.2.1"
   }
 }

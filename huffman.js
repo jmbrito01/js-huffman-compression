@@ -1,14 +1,19 @@
-﻿var TreeModel = require('tree-model');
+﻿var fs = require('fs');
 
 function getLetterOccurance(text) {
     var letters = [];
+    var indexes = [];
     for (var i = 0; i < text.length; i++) {
-        var idx = -1;
-        for (var j = 0; j < letters.length; j++) {
-            if (letters[j].name == text[i])
-                idx = j;
+        var idx = indexes[text[i]] || -1;
+        if (idx == -1) {
+            letters.push({ name: text[i], count: 1 });
+            for (var j = 0; j < letters.length; j++) {
+                if (letters[j].name == text[i]) {
+                    idx = j;
+                    indexes[letters[j].name] = idx;
+                }
+            }
         }
-        if (idx == -1) letters.push({ name: text[i], count: 1 });
         else letters[idx].count++;
     }
     return letters;
@@ -18,9 +23,11 @@ function mergeTree(tree) {
     if (tree.length <= 2) return false;
     tree.sort(function (a, b) { return a.count - b.count; });
     var temp = [tree[0], tree[1]];
+
     tree[0] = {
         children: [temp[0], temp[1]],
-        count: temp[0].count+temp[1].count
+        count: temp[0].count+temp[1].count,
+        name: temp[0].name+temp[1].name
     };
     tree.splice(1, 1);
     return true;
@@ -34,10 +41,15 @@ function initTree(obj) {
 }
 
 function getAddressByName(element, name, address) {
+    var b = false;
+    do {
+
+    } while (b);
     if (address === undefined) address = "";
     if (element.name == name) return address;
     else if (element.children !== undefined) {
-        return getAddressByName(element.children[0], name, address + '0') || getAddressByName(element.children[1], name, address + '1');
+        if (element.children[0].name.indexOf(name) != -1) return getAddressByName(element.children[0], name, address + '0');
+        else return getAddressByName(element.children[1], name, address + '1');
     } else return null;
 }
 
@@ -48,7 +60,7 @@ function getNameByAddress(tree, address) {
             current = current.children[parseInt(address[i])];
         }
     }
-    if (current.name !== undefined) return current.name;
+    if (current.name.length == 1) return current.name;
     else return null;
 }
 
@@ -56,10 +68,26 @@ function isPath(tree, address) {
     return getNameByAddress(tree, address) == null;
 }
 
+exports.loadCompressor = function(fd, content) {
+    var compressor = JSON.parse(fs.readFileSync(fd));
+    compressor.content = content;
+    return compressor;
+}
+
 exports.createCompressor = function (compressor) {
+    var started = (new Date()).getTime();
     compressor.letters = getLetterOccurance(compressor.content);
     compressor.tree = [];
     initTree(compressor);
+    compressor.time = (new Date()).getTime() - started;
+
+    compressor.saveFile = function(fd) {
+        var content = compressor.content;
+        compressor.content = undefined;
+        fs.writeFileSync(fd, JSON.stringify(compressor));
+        compressor.content = content;
+    }
+
     return compressor;
 }
 
