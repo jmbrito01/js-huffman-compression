@@ -1,7 +1,9 @@
 ﻿var fs = require('fs');
+var readline = require('readline-sync');
 var huffman = require('./huffman.js');
 
-var text = fs.readFileSync('FILE_PATH').toString();
+var file = readline.question('Please write the file path: ');
+var text = fs.readFileSync(file).toString();
 var tree = huffman.createCompressor({ content: text });
 console.log('Compressing...');
 var c = huffman.compress(tree);
