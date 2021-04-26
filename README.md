@@ -1,2 +1,2 @@
 # js-huffman-compression
-Javascript Huffman Tree compression
+A native javascript huffman tree compression, focused on understanding how lossless data compression works.
